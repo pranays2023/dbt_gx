@@ -1,11 +1,11 @@
 variable "databricks_account_username" {
-    default = "pranay@wednesday.is"
+    default = "email"
 }
 variable "databricks_account_password" {
-    default = "Sadhguru@2023"
+    default = "password"
 }
 variable "databricks_account_id" {
-    default = "01557807-7345-4a18-9425-1d31ee2294a5"
+    default = "databricks_account_ID"
 }
 
 variable "tags" {
