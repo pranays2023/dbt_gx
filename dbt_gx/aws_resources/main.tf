@@ -1,3 +1,12 @@
+#Below block will configure backend to store terraform state
+terraform {
+  backend "s3" {
+    bucket = "Bucket_name" #This will be the bucket where tfstate will be stored.
+    key    = "terraform.tfstate"
+    region = "ap-south-1" #Mention specific region where tfstate bucket resides 
+  }
+}
+
 terraform {
   required_providers {
     aws = {
@@ -13,8 +22,8 @@ terraform {
 
 provider "aws" {
   region  = "ap-south-1"
-  access_key = "YOUR_ACCESS_KEY"
-  secret_key = "YOUR_SECRET_KEY"
+  access_key = "YOUR_ACCESS_KEY" #Variablise for better security
+  secret_key = "YOUR_SECRET_KEY" #Variablise for better security
 }
 
 provider "random" {}
@@ -48,7 +57,7 @@ resource "aws_iam_role_policy_attachment" "common_iam_role_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-##S3
+##S3 for loading data
 
 resource "random_pet" "bucket_name" {
   length    = 2
@@ -56,13 +65,14 @@ resource "random_pet" "bucket_name" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "${random_pet.bucket_name.id}-test"
+  bucket = "${random_pet.bucket_name.id}-test_data"
 
   tags = {
-    Name        = "${random_pet.bucket_name.id}-test"
+    Name        = "${random_pet.bucket_name.id}-test_data"
     Environment = "Dev"
   }
 }
+
 
 ##SNS
 
@@ -118,4 +128,16 @@ output "sns_topic_arn" {
 
 output "lambda_function_arn" {
   value = aws_lambda_function.lambda_function.arn
+}
+
+output "sns_topic_name" {
+  value = aws_sns_topic.my_topic.name
+}
+
+output "s3_data_bucket_name" {
+  value = aws_s3_bucket.my_bucket.bucket
+}
+
+output "lambda_function_name" {
+  value = aws_lambda_function.lambda_function.function_name
 }
