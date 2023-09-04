@@ -20,6 +20,13 @@ terraform {
   }
 }
 
+variable "AWS_ACCESS_KEY_ID" {
+  default = ""
+}
+variable "AWS_SECRET_ACCESS_KEY" {
+  default = ""
+}
+
 provider "aws" {
   region  = "ap-south-1"
   access_key = "YOUR_ACCESS_KEY" #Variablise for better security
@@ -134,7 +141,7 @@ output "sns_topic_name" {
   value = aws_sns_topic.my_topic.name
 }
 
-output "s3_data_bucket_name" {
+output "s3_bucket_name" {
   value = aws_s3_bucket.my_bucket.bucket
 }
 

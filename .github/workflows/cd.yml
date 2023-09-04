@@ -1,0 +1,98 @@
+name: Databricks AWS Setup
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  create-aws-resource:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.14.7
+
+      - name: Set Terraform Variables
+        run: |
+          export TF_VAR_databricks_account_username="${{ secrets.DATABRICKS_ACCOUNT_USERNAME }}"
+          export TF_VAR_databricks_account_password="${{ secrets.DATABRICKS_ACCOUNT_PASSWORD }}"
+          export TF_VAR_databricks_account_id="${{ secrets.DATABRICKS_ACCOUNT_ID }}"
+          export TF_VAR_AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID}}"
+          export TF_VAR_AWS_SECRET_ACCESS_KEY="${{secrets.AWS_SECRET_ACCESS_KEY}}"
+
+      - name: Terraform Init (AWS Resource)
+        run: terraform init -chdir dbt_gx/aws_resources
+
+      - name: Plan and Apply AWS resources
+        run: terraform apply -auto-approve -chdir dbt_gx/aws_resources
+        id: aws_outputs
+
+      - name: Terraform Init (Databricks)
+        run: terraform init -chdir dbt_gx/dbt_workspace
+
+      - name: Plan and Apply Databricks workspace
+        run: terraform apply -auto-approve -chdir dbt_gx/dbt_workspace
+        id: databricks_outputs
+
+      - name: Store Terraform Outputs in S3
+        run: |
+          echo "S3 Bucket name ${{ steps.s3_bucket_name.outputs.s3_bucket_name }}" 
+          S3_BUCKET_NAME=${{ steps.s3_bucket_name.outputs.s3_bucket_name }}
+          # aws s3 cp dbt_gx/aws_resources/terraform.tfstate s3://your-s3-bucket-name/
+          # aws s3 cp dbt_gx/dbt_workspace/terraform.tfstate s3://your-s3-bucket-name/
+
+      - name: Destroy AWS Resources
+        run: terraform destroy -chdir dbt_gx/aws_resources
+
+      - name: Destroy Databricks Resources
+        run: terraform destroy -chdir dbt_gx/dbt_workspace
+
+      - name: Use Terraform Outputs
+        run: |
+          echo "SNS Topic ARN: ${{ steps.aws_outputs.outputs.sns_topic_arn }}"
+          echo "S3 Bucket Name: ${{ steps.databricks_outputs.outputs.databricks_host }}"
+          echo "Lambda Function ARN: ${{ steps.databricks_outputs.outputs.databricks_token }}"
+
+          echo "::set-env name=SNS_TOPIC_ARN::${{ steps.aws_outputs.outputs.sns_topic_arn }}"
+          echo "::set-env name=DATABRICKS_HOST::${{ steps.databricks_outputs.outputs.databricks_host }}"
+          echo "::set-env name=DATABRICKS_TOKEN::${{ steps.databricks_outputs.outputs.databricks_token }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: Setup Serverless Framework & Build
+        run: |
+          npm install -g serverless
+          cd dbt_gx
+          serverless package
+
+      - name: Deploy Lambda using AWS CLI
+        uses: ItsKarma/aws-cli@v1.70.0
+        with:
+          args: lambda update-function-code --function-name ${{ secrets.AWS_LAMBDA_NAME }} --zip-file fileb://dbt_gx/.serverless/generate-report.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Update Lambda Environment Variables
+        run: aws lambda update-function-configuration --function-name ${{ secrets.AWS_LAMBDA_NAME }} --environment "Variables={ARN_VALUE='SOME_RANDOM_VALUE'}"
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10
+
+      - name: Run Cluster Script
+        run: |
+          cd dbt_gx
+          pip install databricks_api
+          python3 cluster.py

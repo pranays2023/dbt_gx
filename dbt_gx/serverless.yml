@@ -1,0 +1,12 @@
+service: dbt-gx-serverless
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.9
+
+functions:
+  generate-report:
+    handler: functions/lambda_funtion.lambda_handler
+    package:
+      individually: true
