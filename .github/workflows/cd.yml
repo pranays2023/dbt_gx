@@ -9,18 +9,22 @@ on:
 jobs:
   create-aws-resource:
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
 
-      - name: Deploy Lambda using AWS CLI
-        uses: ItsKarma/aws-cli@v1.70.0
+      - name: AWS S3 Copy Source Data
+        uses: jakejarvis/s3-sync-action@v0.5.0
         with:
-          args: s3 ls
+          args: --follow-symlinks
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          AWS_S3_BUCKET: ""
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -108,11 +112,6 @@ jobs:
 
       - name: Update Lambda Environment Variables
         run: aws lambda update-function-configuration --function-name ${{ secrets.AWS_LAMBDA_NAME }} --environment "Variables={ARN_VALUE='SOME_RANDOM_VALUE'}"
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.10
 
       - name: Run Cluster Script
         run: |
