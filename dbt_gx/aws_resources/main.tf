@@ -6,13 +6,9 @@ variable "AWS_SECRET_ACCESS_KEY" {
   default = ""
 }
 
-variable "AWS_S3_TF_BUCKET" {
-  default = ""
-}
-
 terraform {
   backend "s3" {
-    bucket = var.AWS_S3_TF_BUCKET #This will be the bucket where tfstate will be stored.
+    bucket = "data-engg-onboarding" #This will be the bucket where tfstate will be stored.
     key    = "terraform.tfstate"
     region = "ap-south-1" #Mention specific region where tfstate bucket resides 
   }
