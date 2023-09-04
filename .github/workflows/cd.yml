@@ -39,6 +39,7 @@ jobs:
           export TF_VAR_AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID}}"
           export TF_VAR_AWS_SECRET_ACCESS_KEY="${{secrets.AWS_SECRET_ACCESS_KEY}}"
           export TF_VAR_email=${{secrets.AWS_SNS_EMAIL}}
+          export TF_VAR_AWS_S3_TF_BUCKET=${{secrets.AWS_S3_TF_BUCKET}}
 
       - name: Terraform Init (AWS Resource)
         run: |
@@ -68,8 +69,8 @@ jobs:
         run: |
           echo "S3 Bucket name ${{ steps.s3_bucket_name.outputs.s3_bucket_name }}" 
           S3_BUCKET_NAME=${{ steps.s3_bucket_name.outputs.s3_bucket_name }}
-          # aws s3 cp dbt_gx/aws_resources/terraform.tfstate s3://your-s3-bucket-name/
-          # aws s3 cp dbt_gx/dbt_workspace/terraform.tfstate s3://your-s3-bucket-name/
+          aws s3 cp dbt_gx/aws_resources/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
+          aws s3 cp dbt_gx/dbt_workspace/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
 
       - name: Destroy AWS Resources
         run: |
