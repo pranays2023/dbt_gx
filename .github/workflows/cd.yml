@@ -49,7 +49,7 @@ jobs:
       - name: Plan and Apply AWS resources
         run: |
           cd dbt_gx/aws_resources
-          terraform apply
+          terraform apply -auto-approve
         id: aws_outputs
 
       - name: Terraform Init (Databricks)
@@ -60,7 +60,7 @@ jobs:
       - name: Plan and Apply Databricks workspace
         run: |
           cd dbt_gx/dbt_workspace
-          terraform apply
+          terraform apply -auto-approve
         id: databricks_outputs
 
       - name: Store Terraform Outputs in S3
