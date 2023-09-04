@@ -1,4 +1,11 @@
 #Below block will configure backend to store terraform state
+variable "AWS_ACCESS_KEY_ID" {
+  default = ""
+}
+variable "AWS_SECRET_ACCESS_KEY" {
+  default = ""
+}
+
 terraform {
   backend "s3" {
     bucket = "data-engg-onboarding" #This will be the bucket where tfstate will be stored.
@@ -20,12 +27,7 @@ terraform {
   }
 }
 
-variable "AWS_ACCESS_KEY_ID" {
-  default = ""
-}
-variable "AWS_SECRET_ACCESS_KEY" {
-  default = ""
-}
+
 
 provider "aws" {
   region  = "ap-south-1"
