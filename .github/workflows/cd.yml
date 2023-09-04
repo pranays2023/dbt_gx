@@ -49,8 +49,7 @@ jobs:
       - name: Plan and Apply AWS resources
         run: |
           cd dbt_gx/aws_resources
-          terraform validate
-          terraform plan
+          terraform apply
         id: aws_outputs
 
       - name: Terraform Init (Databricks)
@@ -61,16 +60,15 @@ jobs:
       - name: Plan and Apply Databricks workspace
         run: |
           cd dbt_gx/dbt_workspace
-          terraform validate
-          terraform plan
+          terraform apply
         id: databricks_outputs
 
       - name: Store Terraform Outputs in S3
         run: |
           echo "S3 Bucket name ${{ steps.s3_bucket_name.outputs.s3_bucket_name }}" 
           S3_BUCKET_NAME=${{ steps.s3_bucket_name.outputs.s3_bucket_name }}
-          aws s3 cp dbt_gx/aws_resources/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
-          aws s3 cp dbt_gx/dbt_workspace/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
+          # aws s3 cp dbt_gx/aws_resources/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
+          # aws s3 cp dbt_gx/dbt_workspace/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
 
       - name: Destroy AWS Resources
         run: |
@@ -103,14 +101,9 @@ jobs:
           cd dbt_gx
           serverless package
 
-      # - name: Deploy Lambda using AWS CLI
-      #   uses: ItsKarma/aws-cli@v1.70.0
-      #   with:
-      #     args: lambda update-function-code --function-name ${{ secrets.AWS_LAMBDA_NAME }} --zip-file fileb://dbt_gx/.serverless/generate-report.zip
-      #   env:
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      - name: Deploy Lambda
+        run: |
+          aws lambda update-function-code --function-name ${{ secrets.AWS_LAMBDA_NAME }} --zip-file fileb://dbt_gx/.serverless/generate-report.zip
 
       - name: Update Lambda Environment Variables
         run: aws lambda update-function-configuration --function-name ${{ secrets.AWS_LAMBDA_NAME }} --environment "Variables={ARN_VALUE='SOME_RANDOM_VALUE'}"
