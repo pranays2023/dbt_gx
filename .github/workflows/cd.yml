@@ -27,17 +27,27 @@ jobs:
           export TF_VAR_AWS_SECRET_ACCESS_KEY="${{secrets.AWS_SECRET_ACCESS_KEY}}"
 
       - name: Terraform Init (AWS Resource)
-        run: terraform init -chdir dbt_gx/aws_resources
+        run: |
+          cd dbt_gx/aws_resources
+          terraform init
 
       - name: Plan and Apply AWS resources
-        run: terraform apply -auto-approve -chdir dbt_gx/aws_resources
+        run: |
+          cd dbt_gx/aws_resources
+          terraform validate
+          terraform plan
         id: aws_outputs
 
       - name: Terraform Init (Databricks)
-        run: terraform init -chdir dbt_gx/dbt_workspace
+        run: |
+          cd dbt_gx/dbt_workspace
+          terraform init
 
       - name: Plan and Apply Databricks workspace
-        run: terraform apply -auto-approve -chdir dbt_gx/dbt_workspace
+        run: |
+          cd dbt_gx/dbt_workspace
+          terraform validate
+          terraform plan
         id: databricks_outputs
 
       - name: Store Terraform Outputs in S3
@@ -48,10 +58,14 @@ jobs:
           # aws s3 cp dbt_gx/dbt_workspace/terraform.tfstate s3://your-s3-bucket-name/
 
       - name: Destroy AWS Resources
-        run: terraform destroy -chdir dbt_gx/aws_resources
+        run: |
+          cd dbt_gx/aws_resources
+          terraform destroy
 
       - name: Destroy Databricks Resources
-        run: terraform destroy -chdir dbt_gx/dbt_workspace
+        run: |
+          cd dbt_gx/dbt_workspace
+          terraform destroy
 
       - name: Use Terraform Outputs
         run: |
