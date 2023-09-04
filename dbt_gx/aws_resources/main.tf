@@ -1,7 +1,7 @@
 #Below block will configure backend to store terraform state
 terraform {
   backend "s3" {
-    bucket = "Bucket_name" #This will be the bucket where tfstate will be stored.
+    bucket = "databricktest2023" #This will be the bucket where tfstate will be stored.
     key    = "terraform.tfstate"
     region = "ap-south-1" #Mention specific region where tfstate bucket resides 
   }
