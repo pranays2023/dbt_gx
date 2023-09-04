@@ -73,10 +73,10 @@ resource "random_pet" "bucket_name" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "${random_pet.bucket_name.id}-test_data"
+  bucket = "${random_pet.bucket_name.id}-test-data"
 
   tags = {
-    Name        = "${random_pet.bucket_name.id}-test_data"
+    Name        = "${random_pet.bucket_name.id}-test-data"
     Environment = "Dev"
   }
 }
@@ -106,7 +106,6 @@ resource "aws_lambda_function" "lambda_function" {
   role          = aws_iam_role.common_iam_role.arn
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.9"
-  filename      = "lambda_function.zip"
 
   environment {
     variables = {
