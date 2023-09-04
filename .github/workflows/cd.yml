@@ -24,7 +24,7 @@ jobs:
         with:
           args: --follow-symlinks
         env:
-          AWS_S3_BUCKET: ""
+          AWS_S3_BUCKET: "data-engg-onboarding"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
