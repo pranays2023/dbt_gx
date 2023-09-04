@@ -31,16 +31,16 @@ jobs:
         env:
           AWS_S3_BUCKET: "data-engg-onboarding"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 16.x
 
-      - name: Setup Serverless Framework & Build
-        run: |
-          npm install -g serverless
-          cd dbt_gx
-          serverless package
+      # - name: Setup Serverless Framework & Build
+      #   run: |
+      #     npm install -g serverless
+      #     cd dbt_gx
+      #     serverless package
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -55,7 +55,7 @@ jobs:
       - name: Plan and Apply AWS resources
         run: |
           cd dbt_gx/aws_resources
-          terraform apply -auto-approve
+          terraform destroy -auto-approve
         id: aws_outputs
 
       - name: Terraform Init (Databricks)
@@ -66,41 +66,41 @@ jobs:
       - name: Plan and Apply Databricks workspace
         run: |
           cd dbt_gx/dbt_workspace
-          terraform apply -auto-approve
+          terraform destroy -auto-approve
         id: databricks_outputs
 
-      - name: Store Terraform Outputs in S3
-        run: |
-          echo "S3 Bucket name ${{ steps.s3_bucket_name.outputs.s3_bucket_name }}" 
-          S3_BUCKET_NAME=${{ steps.s3_bucket_name.outputs.s3_bucket_name }}
-          # aws s3 cp dbt_gx/aws_resources/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
-          # aws s3 cp dbt_gx/dbt_workspace/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
+      # - name: Store Terraform Outputs in S3
+      #   run: |
+      #     echo "S3 Bucket name ${{ steps.s3_bucket_name.outputs.s3_bucket_name }}"
+      #     S3_BUCKET_NAME=${{ steps.s3_bucket_name.outputs.s3_bucket_name }}
+      #     # aws s3 cp dbt_gx/aws_resources/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
+      #     # aws s3 cp dbt_gx/dbt_workspace/terraform.tfstate s3://${{secrets.AWS_S3_TF_BUCKET}}/tf-state
 
-      - name: Destroy AWS Resources
-        run: |
-          cd dbt_gx/aws_resources
-          terraform destroy
+      # - name: Destroy AWS Resources
+      #   run: |
+      #     cd dbt_gx/aws_resources
+      #     terraform destroy
 
-      - name: Destroy Databricks Resources
-        run: |
-          cd dbt_gx/dbt_workspace
-          terraform destroy
+      # - name: Destroy Databricks Resources
+      #   run: |
+      #     cd dbt_gx/dbt_workspace
+      #     terraform destroy
 
-      - name: Use Terraform Outputs
-        run: |
-          echo "SNS Topic ARN: ${{ steps.aws_outputs.outputs.sns_topic_arn }}"
-          echo "S3 Bucket Name: ${{ steps.databricks_outputs.outputs.databricks_host }}"
-          echo "Lambda Function ARN: ${{ steps.databricks_outputs.outputs.databricks_token }}"
+      # - name: Use Terraform Outputs
+      #   run: |
+      #     echo "SNS Topic ARN: ${{ steps.aws_outputs.outputs.sns_topic_arn }}"
+      #     echo "S3 Bucket Name: ${{ steps.databricks_outputs.outputs.databricks_host }}"
+      #     echo "Lambda Function ARN: ${{ steps.databricks_outputs.outputs.databricks_token }}"
 
-          echo "::set-env name=SNS_TOPIC_ARN::${{ steps.aws_outputs.outputs.sns_topic_arn }}"
-          echo "::set-env name=DATABRICKS_HOST::${{ steps.databricks_outputs.outputs.databricks_host }}"
-          echo "::set-env name=DATABRICKS_TOKEN::${{ steps.databricks_outputs.outputs.databricks_token }}"
+      #     echo "::set-env name=SNS_TOPIC_ARN::${{ steps.aws_outputs.outputs.sns_topic_arn }}"
+      #     echo "::set-env name=DATABRICKS_HOST::${{ steps.databricks_outputs.outputs.databricks_host }}"
+      #     echo "::set-env name=DATABRICKS_TOKEN::${{ steps.databricks_outputs.outputs.databricks_token }}"
 
-      - name: Update Lambda Environment Variables
-        run: aws lambda update-function-configuration --function-name ${{ secrets.AWS_LAMBDA_NAME }} --environment "Variables={ARN_VALUE='SOME_RANDOM_VALUE'}"
+      # - name: Update Lambda Environment Variables
+      #   run: aws lambda update-function-configuration --function-name ${{ secrets.AWS_LAMBDA_NAME }} --environment "Variables={ARN_VALUE='SOME_RANDOM_VALUE'}"
 
-      - name: Run Cluster Script
-        run: |
-          cd dbt_gx
-          pip install databricks_api
-          python3 cluster.py
+      # - name: Run Cluster Script
+      #   run: |
+      #     cd dbt_gx
+      #     pip install databricks_api
+      #     python3 cluster.py
