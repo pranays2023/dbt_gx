@@ -38,6 +38,7 @@ jobs:
           export TF_VAR_databricks_account_id="${{ secrets.DATABRICKS_ACCOUNT_ID }}"
           export TF_VAR_AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID}}"
           export TF_VAR_AWS_SECRET_ACCESS_KEY="${{secrets.AWS_SECRET_ACCESS_KEY}}"
+          export TF_VAR_email=${{secrets.AWS_SNS_EMAIL}}
 
       - name: Terraform Init (AWS Resource)
         run: |
