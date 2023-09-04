@@ -13,6 +13,11 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      TF_VAR_databricks_account_username: ${{ secrets.DATABRICKS_ACCOUNT_USERNAME }}
+      TF_VAR_databricks_account_password: ${{ secrets.DATABRICKS_ACCOUNT_PASSWORD }}
+      TF_VAR_databricks_account_id: ${{ secrets.DATABRICKS_ACCOUNT_ID }}
+      TF_VAR_email: ${{secrets.AWS_SNS_EMAIL}}
+      TF_VAR_AWS_S3_TF_BUCKET: ${{secrets.AWS_S3_TF_BUCKET}}
 
     steps:
       - name: Checkout
@@ -30,16 +35,6 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.5.6
-
-      - name: Set Terraform Variables
-        run: |
-          export TF_VAR_databricks_account_username="${{ secrets.DATABRICKS_ACCOUNT_USERNAME }}"
-          export TF_VAR_databricks_account_password="${{ secrets.DATABRICKS_ACCOUNT_PASSWORD }}"
-          export TF_VAR_databricks_account_id="${{ secrets.DATABRICKS_ACCOUNT_ID }}"
-          export TF_VAR_AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID}}"
-          export TF_VAR_AWS_SECRET_ACCESS_KEY="${{secrets.AWS_SECRET_ACCESS_KEY}}"
-          export TF_VAR_email=${{secrets.AWS_SNS_EMAIL}}
-          export TF_VAR_AWS_S3_TF_BUCKET=${{secrets.AWS_S3_TF_BUCKET}}
 
       - name: Terraform Init (AWS Resource)
         run: |
