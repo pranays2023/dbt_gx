@@ -31,6 +31,17 @@ jobs:
         env:
           AWS_S3_BUCKET: "data-engg-onboarding"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: Setup Serverless Framework & Build
+        run: |
+          npm install -g serverless
+          cd dbt_gx
+          serverless package
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -84,21 +95,6 @@ jobs:
           echo "::set-env name=SNS_TOPIC_ARN::${{ steps.aws_outputs.outputs.sns_topic_arn }}"
           echo "::set-env name=DATABRICKS_HOST::${{ steps.databricks_outputs.outputs.databricks_host }}"
           echo "::set-env name=DATABRICKS_TOKEN::${{ steps.databricks_outputs.outputs.databricks_token }}"
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-
-      - name: Setup Serverless Framework & Build
-        run: |
-          npm install -g serverless
-          cd dbt_gx
-          serverless package
-
-      - name: Deploy Lambda
-        run: |
-          aws lambda update-function-code --function-name ${{ secrets.AWS_LAMBDA_NAME }} --zip-file fileb://dbt_gx/.serverless/generate-report.zip
 
       - name: Update Lambda Environment Variables
         run: aws lambda update-function-configuration --function-name ${{ secrets.AWS_LAMBDA_NAME }} --environment "Variables={ARN_VALUE='SOME_RANDOM_VALUE'}"
